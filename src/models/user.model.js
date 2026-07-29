@@ -59,7 +59,6 @@ userSchema.pre("save", async function (next) {
         // Lower number → Faster hashing, less secure.
         // Higher number → Slower hashing, more resistant to brute-force attacks.
     }
-    next()
 })
 
 userSchema.methods.isPasswordCorrect = async function (password){

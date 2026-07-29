@@ -20,7 +20,7 @@ const registerUser = asyncHandler( async (req, res) => {
     // get user details from frontend
     // in routes we used middleware multer for files
     const {fullName, email, username, password} = req.body
-    console.log("email", email)
+    // console.log("email", email)
 
     // validation - not empty
     if(
@@ -40,8 +40,9 @@ const registerUser = asyncHandler( async (req, res) => {
 
     // check for images, check for avatar
     const avatarLocalPath = req.files?.avatar[0]?.path;
-    const coverImageLocalPath = req.files?.coverImage[0]?.path;
+    const coverImageLocalPath = req.files?.coverImage?.[0]?.path; // this is imp as coverImage is not mandatory
     
+
     if(!avatarLocalPath){
         throw new ApiError(400, "avatar image required");
     }
@@ -50,8 +51,9 @@ const registerUser = asyncHandler( async (req, res) => {
     const avatarLink = await uploadOnCloudinary(avatarLocalPath)
     const coverImageLink = await uploadOnCloudinary(coverImageLocalPath)
 
+    
     if(!avatarLink){
-        throw new ApiError(400, "avatar image required");
+        throw new ApiError(400, "avatar image required (cloudinary)");
     }
 
     // create user object - create entry in db
