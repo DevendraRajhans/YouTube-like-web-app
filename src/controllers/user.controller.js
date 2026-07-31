@@ -5,6 +5,7 @@ import {ApiResponse} from "../utils/ApiResponse.js"
 import {User} from "../models/user.model.js"
 import jwt from "jsonwebtoken"
 import { Subscription } from "../models/subscriber.model.js"
+import mongoose from "mongoose"
 
 // this is function to get refresh and access tokens
 const generateAccessAndRefreshTokens = async(userId) => {
@@ -392,7 +393,7 @@ const updateCoverImage = asyncHandler(async (req, res) => {
     );
 });
 
-const getUserChannerProfile = asyncHandler( async (req, res) => {
+const getUserChannelProfile = asyncHandler( async (req, res) => {
 
     const {username} = req.params
 
@@ -462,11 +463,72 @@ const getUserChannerProfile = asyncHandler( async (req, res) => {
     .json(
         new ApiResponse(
             200,
-            channel,
+            channel[0],
             "User Channel fetched successfully"
         )
     )
 });
+
+const getWatchedHistory = asyncHandler( async (req, res) => {
+    
+    const user = await User.aggregate([
+        {
+            $match: {
+                _id: new mongoose.Types.ObjectId(req.user._id)
+            }
+        },
+        {
+            $lookup: {
+                from: "videos",
+                localField: "watchHistory",
+                foreignField: "_id",
+                as: "watchHistory",
+                pipeline: [
+                    {
+                        $lookup: {
+                            from: "users",
+                            localField: "owner",
+                            foreignField: "_id",
+                            as: "owner",
+                            pipeline: [
+                                {
+                                    $project: {
+                                        fullName: 1,
+                                        username: 1,
+                                        avatar: 1
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        $addFields: {
+                            owner: {
+                                $first: "$owner"
+                            }
+                        }
+                    }
+
+                ]
+                
+            }
+        }
+    ])
+
+    if (!user.length) {
+        throw new ApiError(404, "User not found");
+    }
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(
+            200,
+            user[0].watchHistory,
+            "WatchHistory fetched successfully"
+        )
+    )
+})
 
 export {
     registerUser,
@@ -478,5 +540,6 @@ export {
     updateAccountDetails,
     updateAvatar,
     updateCoverImage,
-    getUserChannerProfile
+    getUserChannelProfile,
+    getWatchedHistory
 }
