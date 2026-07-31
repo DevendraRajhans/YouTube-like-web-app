@@ -37,4 +37,24 @@ const uploadOnCloudinary = async (localFilePath) => {
     }
 };
 
-export { uploadOnCloudinary };
+const getPublicIdFromUrl = (url) => {
+    // url will be like = http://res.cloudinary.com/amw5vgl3/image/upload/v1785351652/irxxjqj4ertnyeuxniuk.webp
+    
+    const filename = url.split("/").pop();    // filename = irxxjqj4ertnyeuxniuk.webp
+    
+    return filename.substring(0, filename.lastIndexOf(".")) // public id = irxxjqj4ertnyeuxniuk
+
+}
+
+const deleteFromCloudinary = async(public_id) => {
+    
+    if(!public_id) return null;
+    
+    return await cloudinary.uploader.destroy(public_id)
+}
+
+export { 
+    uploadOnCloudinary,
+    getPublicIdFromUrl,
+    deleteFromCloudinary
+};
